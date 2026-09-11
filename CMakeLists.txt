@@ -13,13 +13,24 @@ else()
     message(STATUS "Found Geode: $ENV{GEODE_SDK}")
 endif()
 
-# Some SDK checkouts are missing this helper script -- fetch it ourselves if so.
-if (NOT EXISTS "$ENV{GEODE_SDK}/cmake/CPM.cmake")
-    message(STATUS "CPM.cmake missing from Geode SDK, downloading it")
-    file(MAKE_DIRECTORY "$ENV{GEODE_SDK}/cmake")
+# geode-sdk's own CMakeLists.txt include()s files using relative paths like
+# "cmake/CPM.cmake". Because include() (unlike add_subdirectory()) does NOT
+# change which folder relative paths resolve against, those paths actually
+# get looked up inside OUR project folder, not the SDK's. So: copy the SDK's
+# own cmake helper scripts into our project folder first, every build.
+file(GLOB GEODE_SDK_CMAKE_HELPERS "$ENV{GEODE_SDK}/cmake/*.cmake")
+if (GEODE_SDK_CMAKE_HELPERS)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+    file(COPY ${GEODE_SDK_CMAKE_HELPERS} DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+endif()
+
+# Belt-and-suspenders: if CPM.cmake still isn't there after that, grab it directly.
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake")
+    message(STATUS "CPM.cmake still missing, downloading it directly")
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
     file(DOWNLOAD
         https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
-        "$ENV{GEODE_SDK}/cmake/CPM.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CPM.cmake"
     )
 endif()
 
