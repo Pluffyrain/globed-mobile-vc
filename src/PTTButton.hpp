@@ -32,7 +32,6 @@ private:
     bool m_dragging = false;
 
     void updateVisual();
-    void checkConnection(float dt);
     void startTalking();
     void stopTalking();
     void triggerVoiceKey(bool down);
