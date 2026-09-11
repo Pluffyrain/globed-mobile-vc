@@ -13,6 +13,16 @@ else()
     message(STATUS "Found Geode: $ENV{GEODE_SDK}")
 endif()
 
+# Some SDK checkouts are missing this helper script -- fetch it ourselves if so.
+if (NOT EXISTS "$ENV{GEODE_SDK}/cmake/CPM.cmake")
+    message(STATUS "CPM.cmake missing from Geode SDK, downloading it")
+    file(MAKE_DIRECTORY "$ENV{GEODE_SDK}/cmake")
+    file(DOWNLOAD
+        https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/get_cpm.cmake
+        "$ENV{GEODE_SDK}/cmake/CPM.cmake"
+    )
+endif()
+
 include($ENV{GEODE_SDK}/CMakeLists.txt)
 
 setup_geode_mod(${PROJECT_NAME})
