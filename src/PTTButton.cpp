@@ -115,8 +115,8 @@ void PTTButton::ccTouchCancelled(CCTouch* touch, CCEvent* event) {
 }
 
 void PTTButton::startTalking() {
-    auto status = getPermissionStatus(Permission::RecordAudio);
-    if (status != PermissionStatus::Granted) {
+    bool granted = getPermissionStatus(Permission::RecordAudio);
+    if (!granted) {
         requestPermission(Permission::RecordAudio, [this](bool granted) {
             if (granted) {
                 this->triggerVoiceKey(true);
@@ -137,7 +137,7 @@ void PTTButton::triggerVoiceKey(bool down) {
     KeybindSettingPressedEventV3(
         "dankmeme.globed2",
         "keybind-voice-chat",
-        Keybind::create(KEY_None),
+        Keybind{ KEY_None },
         down,
         false,
         0.0
