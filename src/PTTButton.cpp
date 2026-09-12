@@ -1,11 +1,8 @@
 #include "PTTButton.hpp"
 
-// Everything in this file only matters on a touchscreen -- on desktop
-// builds it compiles to nothing, since there's a physical keybind already.
 #if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_IOS)
 
 #include <Geode/utils/permission.hpp>
-#include <Geode/loader/SettingV3.hpp>
 
 using namespace geode::utils::permission;
 
@@ -68,7 +65,7 @@ void PTTButton::updateVisual() {
 
     ccColor4F color;
     if (m_holding) {
-        color = { 0.9f, 0.2f, 0.2f, 0.9f };       // red: actively talking
+        color = { 0.9f, 0.2f, 0.2f, 0.9f };       // red: held
     } else if (Mod::get()->getSettingValue<bool>("edit-position")) {
         color = { 0.9f, 0.7f, 0.1f, 0.85f };      // amber: repositioning
     } else {
@@ -118,30 +115,21 @@ void PTTButton::startTalking() {
     bool granted = getPermissionStatus(Permission::RecordAudio);
     if (!granted) {
         requestPermission(Permission::RecordAudio, [this](bool granted) {
-            if (granted) {
-                this->triggerVoiceKey(true);
-            } else {
+            if (!granted) {
                 Notification::create("Microphone permission denied", NotificationIcon::Error)->show();
             }
         });
         return;
     }
-    this->triggerVoiceKey(true);
+    // NOTE: mic permission is real and working past this point. Actually
+    // starting Globed's voice capture has no public API to trigger from
+    // outside its own mod -- that would need either an upstream change
+    // from GlobedGD exposing one, or editing Globed's own source directly.
+    // Left as a clear TODO rather than faking success silently.
 }
 
 void PTTButton::stopTalking() {
-    this->triggerVoiceKey(false);
-}
-
-void PTTButton::triggerVoiceKey(bool down) {
-    KeybindSettingPressedEventV3(
-        "dankmeme.globed2",
-        "keybind-voice-chat",
-        Keybind{ KEY_None },
-        down,
-        false,
-        0.0
-    ).post();
+    // See note in startTalking().
 }
 
 #endif // GEODE_IS_ANDROID || GEODE_IS_IOS
