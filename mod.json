@@ -1,5 +1,5 @@
 {
-    "geode": "5.6.1",
+    "geode": "v5.6.1",
     "gd": {
         "android": "2.2081",
         "ios": "2.2081"
@@ -8,7 +8,7 @@
     "name": "Globed Mobile Voice Chat",
     "version": "v1.0.0",
     "developer": "greaf",
-    "description": "Adds a movable push-to-talk button for Globed voice chat on Android/iOS. Requires a build of Globed with mobile voice sending enabled -- on a stock Globed install the button will appear but won't transmit audio.",
+    "description": "adds a talk button for Globed voice chat on Android or ioS though it needs a build of globed with mobile voice sending enabled, on normal geode Globed the button will appear but womt send audio.",
     "tags": ["online", "utility"],
     "links": {
         "source": "https://github.com/GlobedGD/globed2/issues/114"
@@ -28,9 +28,32 @@
         },
         "edit-position": {
             "type": "bool",
-            "name": "Move Button",
-            "description": "While ON, drag the push-to-talk button anywhere on screen. Turn back OFF to lock it in place and use it normally.",
+            "name": "Move Button", 
+            "description": "When ts on, you can drag the talk button anywhere on screen, turn it back off to lock it in place and be able to use it normally.",
             "default": false
+        },
+        "button-opacity": {
+            "type": "float",
+            "name": "Button Opacity",
+            "description": "How transparent the talk button is.",
+            "default": 0.9,
+            "min": 0.2,
+            "max": 1.0,
+            "control": { "slider": true, "arrows": false, "input": false }
+        },
+        "button-scale": {
+            "type": "float",
+            "name": "Button Size",
+            "description": "How large the  talk button is.",
+            "default": 1.0,
+            "min": 0.5,
+            "max": 2.0,
+            "control": { "slider": true, "arrows": false, "input": false }
+        },
+        "button-preview": {
+            "type": "custom:ptt-preview",
+            "name": "Preview",
+            "description": "preview of the buttons current size and opacity."
         }
     }
 }
