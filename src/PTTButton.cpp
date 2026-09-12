@@ -31,11 +31,12 @@ bool PTTButton::init() {
     m_label = CCLabelBMFont::create("VC", "bigFont.fnt");
     m_label->setScale(0.4f);
     m_label->setPosition({ kRadius, kRadius });
-    this->addChild(m_label);
+    this->addChild(m_label, 1);
 
     this->loadSavedPosition();
     this->updateVisual();
-    this->schedule(schedule_selector(PTTButton::checkConnection), 1.0f);
+    this->refreshVisibility(0.f);
+    this->schedule(schedule_selector(PTTButton::refreshVisibility), 1.0f);
 
     return true;
 }
@@ -65,30 +66,34 @@ void PTTButton::savePosition() {
 void PTTButton::updateVisual() {
     m_circle->clear();
 
-    bool connected = false;
-    if (auto pl = PlayLayer::get()) {
-        connected = globed::GlobedGJBGL::getActive(pl) != nullptr;
-    }
-
-    ccColor4F color;
-    if (m_holding) {
-        color = { 0.9f, 0.2f, 0.2f, 0.9f };       // red: actively talking
-    } else if (Mod::get()->getSettingValue<bool>("edit-position")) {
-        color = { 0.9f, 0.7f, 0.1f, 0.85f };      // amber: repositioning
-    } else if (connected) {
-        color = { 0.2f, 0.8f, 0.3f, 0.75f };      // green: ready
+    ccColor4F fillColor;
+    if (Mod::get()->getSettingValue<bool>("edit-position")) {
+        fillColor = { 0.9f, 0.7f, 0.1f, 0.95f };      // amber: repositioning
+    } else if (m_holding) {
+        fillColor = { 0.2f, 0.85f, 0.3f, 0.95f };     // green: speaking
     } else {
-        color = { 0.5f, 0.5f, 0.5f, 0.6f };       // grey: not in a session
+        fillColor = { 0.85f, 0.2f, 0.2f, 0.95f };     // red: idle
     }
 
-    m_circle->drawDot({ kRadius, kRadius }, kRadius, color);
+    m_circle->drawDot({ kRadius, kRadius }, kRadius, { 0.f, 0.f, 0.f, 0.55f });   // border
+    m_circle->drawDot({ kRadius, kRadius }, kRadius - 4.f, fillColor);            // fill
 }
 
-void PTTButton::checkConnection(float) {
+void PTTButton::refreshVisibility(float) {
+    bool enabled = Mod::get()->getSettingValue<bool>("enabled");
+    bool connected = false;
+    if (enabled) {
+        if (auto pl = PlayLayer::get()) {
+            connected = globed::GlobedGJBGL::getActive(pl) != nullptr;
+        }
+    }
+    this->setVisible(enabled && connected);
     if (!m_holding) this->updateVisual();
 }
 
 bool PTTButton::ccTouchBegan(CCTouch* touch, CCEvent*) {
+    if (!this->isVisible()) return false;
+
     auto local = this->convertTouchToNodeSpace(touch);
     float dx = local.x - kRadius;
     float dy = local.y - kRadius;
@@ -148,7 +153,7 @@ void PTTButton::triggerVoiceKey(bool down) {
     if (!pl) return;
 
     auto gjbgl = globed::GlobedGJBGL::getActive(pl);
-    if (!gjbgl) return; // not connected to a Globed session right now
+    if (!gjbgl) return;
 
     if (down) {
         gjbgl->resumeVoiceRecording();
