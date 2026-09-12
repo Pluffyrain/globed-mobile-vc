@@ -1,4 +1,5 @@
 #include "PTTButton.hpp"
+#include "GlobedInternal.hpp"
 
 #if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_IOS)
 
@@ -34,6 +35,7 @@ bool PTTButton::init() {
 
     this->loadSavedPosition();
     this->updateVisual();
+    this->schedule(schedule_selector(PTTButton::checkConnection), 1.0f);
 
     return true;
 }
@@ -63,16 +65,27 @@ void PTTButton::savePosition() {
 void PTTButton::updateVisual() {
     m_circle->clear();
 
+    bool connected = false;
+    if (auto pl = PlayLayer::get()) {
+        connected = globed::GlobedGJBGL::getActive(pl) != nullptr;
+    }
+
     ccColor4F color;
     if (m_holding) {
-        color = { 0.9f, 0.2f, 0.2f, 0.9f };       // red: held
+        color = { 0.9f, 0.2f, 0.2f, 0.9f };       // red: actively talking
     } else if (Mod::get()->getSettingValue<bool>("edit-position")) {
         color = { 0.9f, 0.7f, 0.1f, 0.85f };      // amber: repositioning
-    } else {
+    } else if (connected) {
         color = { 0.2f, 0.8f, 0.3f, 0.75f };      // green: ready
+    } else {
+        color = { 0.5f, 0.5f, 0.5f, 0.6f };       // grey: not in a session
     }
 
     m_circle->drawDot({ kRadius, kRadius }, kRadius, color);
+}
+
+void PTTButton::checkConnection(float) {
+    if (!m_holding) this->updateVisual();
 }
 
 bool PTTButton::ccTouchBegan(CCTouch* touch, CCEvent*) {
@@ -115,21 +128,33 @@ void PTTButton::startTalking() {
     bool granted = getPermissionStatus(Permission::RecordAudio);
     if (!granted) {
         requestPermission(Permission::RecordAudio, [this](bool granted) {
-            if (!granted) {
+            if (granted) {
+                this->triggerVoiceKey(true);
+            } else {
                 Notification::create("Microphone permission denied", NotificationIcon::Error)->show();
             }
         });
         return;
     }
-    // NOTE: mic permission is real and working past this point. Actually
-    // starting Globed's voice capture has no public API to trigger from
-    // outside its own mod -- that would need either an upstream change
-    // from GlobedGD exposing one, or editing Globed's own source directly.
-    // Left as a clear TODO rather than faking success silently.
+    this->triggerVoiceKey(true);
 }
 
 void PTTButton::stopTalking() {
-    // See note in startTalking().
+    this->triggerVoiceKey(false);
+}
+
+void PTTButton::triggerVoiceKey(bool down) {
+    auto pl = PlayLayer::get();
+    if (!pl) return;
+
+    auto gjbgl = globed::GlobedGJBGL::getActive(pl);
+    if (!gjbgl) return; // not connected to a Globed session right now
+
+    if (down) {
+        gjbgl->resumeVoiceRecording();
+    } else {
+        gjbgl->pauseVoiceRecording();
+    }
 }
 
 #endif // GEODE_IS_ANDROID || GEODE_IS_IOS
