@@ -1,14 +1,12 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include "PTTButton.hpp"
+#include "PreviewSetting.hpp"
 
 using namespace geode::prelude;
 
 #if defined(GEODE_IS_ANDROID) || defined(GEODE_IS_IOS)
 
 class $modify(PlayLayer) {
-    // NOTE: verify this matches PlayLayer::init's real signature for your
-    // targeted GD version (check Geode's codegenned Bindings.hpp) --
-    // this is the commonly-seen signature but bindings do shift.
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
 
@@ -22,5 +20,6 @@ class $modify(PlayLayer) {
 #endif
 
 $on_mod(Loaded) {
+    (void)Mod::get()->registerCustomSettingType("ptt-preview", &PreviewSettingV3::parse);
     log::info("Globed Mobile Voice Chat loaded");
 }
