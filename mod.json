@@ -1,14 +1,14 @@
 {
-    "geode": "5.6.1",
+    "geode": "v5.6.1",
     "gd": {
         "android": "2.2081",
         "ios": "2.2081"
     },
     "id": "greaf.globed-mobile-vc",
     "name": "Globed Mobile Voice Chat",
-    "version": "v0.1.0",
+    "version": "v1.0.0",
     "developer": "greaf",
-    "description": "Adds a movable push-to-talk button for Globed voice chat on Android/iOS, with mic permission handling.",
+    "description": "Adds a movable push-to-talk button for Globed voice chat on Android/iOS. Requires a build of Globed with mobile voice sending enabled -- on a stock Globed install the button will appear but won't transmit audio.",
     "tags": ["online", "utility"],
     "links": {
         "source": "https://github.com/GlobedGD/globed2/issues/114"
@@ -20,6 +20,12 @@
         }
     },
     "settings": {
+        "enabled": {
+            "type": "bool",
+            "name": "Enable Button",
+            "description": "Show the push-to-talk button while connected to a Globed session. Turn off to hide it completely.",
+            "default": true
+        },
         "edit-position": {
             "type": "bool",
             "name": "Move Button",
