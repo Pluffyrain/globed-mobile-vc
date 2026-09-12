@@ -24,6 +24,7 @@ bool PTTButton::init() {
 
     this->setContentSize({ kRadius * 2.f, kRadius * 2.f });
     this->setAnchorPoint({ 0.5f, 0.5f });
+    this->setScale(static_cast<float>(Mod::get()->getSettingValue<double>("button-scale")));
 
     m_circle = CCDrawNode::create();
     this->addChild(m_circle);
@@ -66,20 +67,27 @@ void PTTButton::savePosition() {
 void PTTButton::updateVisual() {
     m_circle->clear();
 
+    float opacity = static_cast<float>(Mod::get()->getSettingValue<double>("button-opacity"));
+
     ccColor4F fillColor;
     if (Mod::get()->getSettingValue<bool>("edit-position")) {
-        fillColor = { 0.9f, 0.7f, 0.1f, 0.95f };      // amber: repositioning
+        fillColor = { 0.9f, 0.7f, 0.1f, 0.95f };      // amber: repositioning wait amber like amber by the dashlagger holy gd reference
     } else if (m_holding) {
         fillColor = { 0.2f, 0.85f, 0.3f, 0.95f };     // green: speaking
     } else {
         fillColor = { 0.85f, 0.2f, 0.2f, 0.95f };     // red: idle
     }
+    fillColor.a *= opacity;
 
-    m_circle->drawDot({ kRadius, kRadius }, kRadius, { 0.f, 0.f, 0.f, 0.55f });   // border
-    m_circle->drawDot({ kRadius, kRadius }, kRadius - 4.f, fillColor);            // fill
+    ccColor4F borderColor = { 0.f, 0.f, 0.f, 0.55f * opacity };
+
+    m_circle->drawDot({ kRadius, kRadius }, kRadius, borderColor);
+    m_circle->drawDot({ kRadius, kRadius }, kRadius - 4.f, fillColor);
 }
 
 void PTTButton::refreshVisibility(float) {
+    this->setScale(static_cast<float>(Mod::get()->getSettingValue<double>("button-scale")));
+
     bool enabled = Mod::get()->getSettingValue<bool>("enabled");
     bool connected = false;
     if (enabled) {
