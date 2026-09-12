@@ -4,13 +4,12 @@
 
 using namespace geode::prelude;
 
-// A small circular touch button, shown bottom-left by default, that:
-//  - can be dragged to a new spot while "Move Button" is on in settings
-//  - starts/stops Globed voice chat while held (mirrors the desktop
-//    "Voice Chat Activate" keybind)
-//  - requests microphone permission the first time it's pressed
-//
-// Only compiled on touchscreen platforms -- see the #if guard in the .cpp.
+// A small circlebutton. Only appears whhen
+//  - the enable Button setting is on
+//  - youre connected to globed level dude typing in github is hard ad shit
+//.
+// NOTE: talking only actually transmits audio on a patched Globed build
+// with mobile voice sending enabled -- see this mod's description.
 class PTTButton : public CCNode, public CCTargetedTouchDelegate {
 public:
     static PTTButton* create();
@@ -32,7 +31,7 @@ private:
     bool m_dragging = false;
 
     void updateVisual();
-    void checkConnection(float dt);
+    void refreshVisibility(float dt);
     void startTalking();
     void stopTalking();
     void triggerVoiceKey(bool down);
