@@ -26,11 +26,10 @@ bool PreviewSettingNodeV3::init(std::shared_ptr<PreviewSettingV3> setting, float
 
     m_preview = CCDrawNode::create();
     this->getButtonMenu()->addChildAtPosition(m_preview, Anchor::Center);
-    this->getButtonMenu()->setContentWidth(60);
+    this->getButtonMenu()->setContentWidth(90);
     this->getButtonMenu()->updateLayout();
 
     this->redrawPreview();
-    // Huh?
     this->schedule(schedule_selector(PreviewSettingNodeV3::tickPreview), 0.1f);
     this->updateState(nullptr);
 
@@ -48,7 +47,7 @@ void PreviewSettingNodeV3::redrawPreview() {
     double opacity = Mod::get()->getSettingValue<double>("button-opacity");
     double scale = Mod::get()->getSettingValue<double>("button-scale");
 
-    float radius = std::clamp(20.f * static_cast<float>(scale), 8.f, 40.f);
+    float radius = std::clamp(20.f * static_cast<float>(scale), 8.f, 38.f);
 
     ccColor4F fill = { 0.85f, 0.2f, 0.2f, static_cast<float>(opacity) };
     ccColor4F border = { 0.f, 0.f, 0.f, 0.55f * static_cast<float>(opacity) };
