@@ -4,7 +4,6 @@
 
 using namespace geode::prelude;
 
-// note ts button only works if you download my patched (see forks or something) globed file 
 class PTTButton : public CCNode, public CCTargetedTouchDelegate {
 public:
     static PTTButton* create();
@@ -24,7 +23,10 @@ private:
     CCLabelBMFont* m_label = nullptr;
     bool m_holding = false;
     bool m_dragging = false;
+    bool m_toggleActive = false;
 
+    bool isToggleMode();
+    bool isSpeaking();
     void updateVisual();
     void refreshVisibility(float dt);
     void startTalking();
