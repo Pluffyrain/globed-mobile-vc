@@ -64,6 +64,14 @@ void PTTButton::savePosition() {
     Mod::get()->setSavedValue("ptt-pos-y", pos.y);
 }
 
+bool PTTButton::isToggleMode() {
+    return Mod::get()->getSettingValue<bool>("toggle-mode");
+}
+
+bool PTTButton::isSpeaking() {
+    return isToggleMode() ? m_toggleActive : m_holding;
+}
+
 void PTTButton::updateVisual() {
     m_circle->clear();
 
@@ -71,11 +79,11 @@ void PTTButton::updateVisual() {
 
     ccColor4F fillColor;
     if (Mod::get()->getSettingValue<bool>("edit-position")) {
-        fillColor = { 0.9f, 0.7f, 0.1f, 0.95f };      // amber: repositioning wait amber like amber by the dashlagger holy gd reference
-    } else if (m_holding) {
-        fillColor = { 0.2f, 0.85f, 0.3f, 0.95f };     // green: speaking
+        fillColor = { 0.9f, 0.7f, 0.1f, 0.95f };
+    } else if (this->isSpeaking()) {
+        fillColor = { 0.2f, 0.85f, 0.3f, 0.95f };
     } else {
-        fillColor = { 0.85f, 0.2f, 0.2f, 0.95f };     // red: idle
+        fillColor = { 0.85f, 0.2f, 0.2f, 0.95f };
     }
     fillColor.a *= opacity;
 
@@ -96,6 +104,12 @@ void PTTButton::refreshVisibility(float) {
         }
     }
     this->setVisible(enabled && connected);
+
+    if (!this->isToggleMode() && m_toggleActive) {
+        m_toggleActive = false;
+        this->stopTalking();
+    }
+
     if (!m_holding) this->updateVisual();
 }
 
@@ -111,7 +125,9 @@ bool PTTButton::ccTouchBegan(CCTouch* touch, CCEvent*) {
         m_dragging = true;
     } else {
         m_holding = true;
-        this->startTalking();
+        if (!this->isToggleMode()) {
+            this->startTalking();
+        }
     }
     this->updateVisual();
     return true;
@@ -128,7 +144,16 @@ void PTTButton::ccTouchEnded(CCTouch*, CCEvent*) {
         this->savePosition();
     } else if (m_holding) {
         m_holding = false;
-        this->stopTalking();
+        if (this->isToggleMode()) {
+            m_toggleActive = !m_toggleActive;
+            if (m_toggleActive) {
+                this->startTalking();
+            } else {
+                this->stopTalking();
+            }
+        } else {
+            this->stopTalking();
+        }
     }
     this->updateVisual();
 }
@@ -144,6 +169,9 @@ void PTTButton::startTalking() {
             if (granted) {
                 this->triggerVoiceKey(true);
             } else {
+                m_toggleActive = false;
+                m_holding = false;
+                this->updateVisual();
                 Notification::create("Microphone permission denied", NotificationIcon::Error)->show();
             }
         });
@@ -170,4 +198,4 @@ void PTTButton::triggerVoiceKey(bool down) {
     }
 }
 
-#endif // GEODE_IS_ANDROID || GEODE_IS_IOS
+#endif
